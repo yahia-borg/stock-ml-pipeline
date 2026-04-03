@@ -1,0 +1,41 @@
+# Worker image — runs data collection, feature building, training
+# Same multi-stage build, adds cron support
+
+FROM python:3.12-slim AS builder
+
+WORKDIR /build
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends gcc g++ libpq-dev && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+RUN pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cpu
+
+COPY pyproject.toml .
+RUN mkdir -p src/utils && touch src/__init__.py src/utils/__init__.py && \
+    pip install --no-cache-dir .
+
+FROM python:3.12-slim AS runtime
+
+WORKDIR /app
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends libpq5 cron && \
+    rm -rf /var/lib/apt/lists/*
+
+COPY --from=builder /opt/venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH" \
+    PYTHONUNBUFFERED=1
+
+COPY src/ src/
+COPY configs/ configs/
+COPY scripts/ scripts/
+
+RUN mkdir -p data/raw data/processed models logs
+
+# Default: run the smart pipeline once then exit
+# Override with cron for continuous operation
+CMD ["bash", "scripts/smart_pipeline.sh"]

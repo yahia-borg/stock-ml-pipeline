@@ -1,0 +1,88 @@
+# Data pipeline configuration
+
+history:
+  start_date: "2000-01-01"       # backfill start — covers dot-com, 9/11, 2008, and beyond
+  # end_date defaults to today
+
+storage:
+  raw_dir: data/raw
+  processed_dir: data/processed
+  splits_dir: data/splits
+  raw_format: parquet             # prices stored as parquet per ticker
+
+database:
+  host: ${DB_HOST:-localhost}
+  port: ${DB_PORT:-5432}
+  name: ${DB_NAME:-stocks}
+  user: ${DB_USER:-postgres}
+  password: ${DB_PASSWORD:-stockpass}
+
+# Walk-forward validation
+validation:
+  initial_train_years: 3          # 2015-2017 as first training window
+  test_months: 3                  # each test fold = 1 quarter
+  step_months: 3                  # slide forward 1 quarter at a time (92 folds, ~15 min total)
+  gap_days: 21                    # purged embargo gap (≥ max forecast horizon of 20d)
+  min_test_samples: 50            # skip fold if fewer samples
+
+# Forecast horizons (trading days)
+horizons:
+  - 1
+  - 5
+  - 20
+
+# Target labeling — classify returns into direction buckets
+labeling:
+  # Thresholds for 3-class: down / flat / up
+  flat_threshold_pct: 0.5         # returns within ±0.5% = flat (for 1d)
+  # Automatically scaled by sqrt(horizon) for 5d and 20d
+
+# Feature engineering
+features:
+  technical_indicators:
+    rsi_periods: [7, 14]
+    roc_periods: [5, 20]
+    ema_periods: [20, 50, 200]
+    bbands_length: 20
+    atr_length: 14
+    return_lags: [1, 2, 3, 5, 10, 20]
+    rolling_vol_windows: [5, 20]
+
+  macro:
+    resample_freq: D              # forward-fill to daily
+    use_vintage_data: true        # use FRED ALFRED API to avoid look-ahead bias
+    usd_index_splice: true        # splice DTWEXB (pre-2006) + DTWEXBGS (2006+)
+
+  sentiment:
+    finbert_model: "beethogedeon/Modern-FinBERT-large"   # 2025 upgrade over ProsusAI/finbert
+    finbert_fallback: "ProsusAI/finbert"
+    finbert_batch_size: 64
+    llm_model: null               # set in .env (vLLM endpoint)
+    decay_halflife_hours: 24      # exponential decay for headline weighting
+
+# News sources (free tier)
+news:
+  rss_feeds:
+    # US / Global
+    reuters_markets: "https://feeds.reuters.com/reuters/businessNews"
+    wsj_markets: "https://feeds.a.dj.com/rss/RSSMarketsMain.xml"
+    seeking_alpha: "https://seekingalpha.com/feed.xml"
+    yahoo_finance: "https://finance.yahoo.com/news/rssindex"
+    # Middle East / MENA
+    arabianbusiness: "https://www.arabianbusiness.com/rss"
+    gulfnews_business: "https://gulfnews.com/business/rss"
+    zawya_mena: "https://www.zawya.com/mena/en/rss/latest-news.xml"
+    dailynews_egypt: "https://dailynewsegypt.com/feed/"
+    ahram_business: "https://english.ahram.org.eg/RSS/4/Business.aspx"
+    arab_news: "https://www.arabnews.com/rss/business"
+    saudi_gazette: "https://saudigazette.com.sa/rss/business"
+  newsapi:
+    requests_per_day: 100         # free tier limit
+    history_days: 30
+  gdelt:
+    max_records: 250
+    lookback_days: 30
+  # Historical news backfill (2000-2015) from HuggingFace FNSPID dataset
+  historical_news:
+    dataset: "Zihan1004/FNSPID"   # 15.7M records, 1999-2023, S&P 500 aligned
+    use_for_backfill: true        # download once for pre-2015 coverage

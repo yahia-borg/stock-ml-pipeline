@@ -1,0 +1,102 @@
+# Model configuration
+
+# ---------- Regime detection (Phase 5) ----------
+regime:
+  model: gaussian_hmm
+  n_states: 3                     # bull / bear / sideways
+  features: [daily_return, volatility_20d, volume_ratio]
+  covariance_type: full
+  n_iter: 100
+
+# ---------- Baseline: tree ensembles (Phase 2) ----------
+baseline:
+  lgbm:
+    n_estimators: 300
+    max_depth: 4                    # reduced from 6 to prevent overfitting
+    learning_rate: 0.05
+    num_leaves: 15                  # reduced from 31 (2^4 - 1)
+    subsample: 0.7
+    colsample_bytree: 0.6          # reduced: forces more feature regularization
+    min_child_samples: 50           # prevents small leaf nodes (memorization)
+    class_weight: balanced
+    reg_alpha: 0.1                  # L1 regularization
+    reg_lambda: 1.0                 # L2 regularization
+    random_state: 42
+
+  xgboost:
+    n_estimators: 300
+    max_depth: 4                    # reduced from 6 — was causing 100% train acc
+    learning_rate: 0.05
+    subsample: 0.7
+    colsample_bytree: 0.6
+    min_child_weight: 20            # prevents overfitting on small groups
+    gamma: 0.5                      # minimum loss reduction for split
+    reg_alpha: 0.1                  # L1 regularization
+    reg_lambda: 1.0                 # L2 regularization
+    eval_metric: mlogloss
+    tree_method: hist
+    scale_pos_weight: 1             # added: was missing class balancing
+    random_state: 42
+
+# ---------- Foundation models (zero-shot baselines) ----------
+foundation:
+  chronos2:
+    model_id: "amazon/chronos-bolt-base"    # 200M, fast
+    prediction_length: 20                    # max horizon
+    context_length: 512                      # lookback window (trading days)
+
+  moirai2:
+    model_id: "Salesforce/moirai-2.0-R-small"
+    prediction_length: 20
+    context_length: 512
+
+# ---------- Temporal Fusion Transformer (Phase 6) ----------
+tft:
+  hidden_size: 128
+  attention_head_size: 4
+  num_attention_heads: 8
+  hidden_continuous_size: 64
+  dropout: 0.15
+  learning_rate: 0.0005
+  max_epochs: 50
+  batch_size: 256
+  gradient_clip_val: 0.5
+  patience: 10                     # early stopping
+  # Static covariates: ticker, sector
+  # Time-varying known: day_of_week, month, is_quarter_end
+  # Time-varying unknown: OHLCV, technicals, macro, sentiment
+
+# ---------- Ensemble (Phase 7) ----------
+ensemble:
+  meta_learner: logistic_regression
+  calibration_method: isotonic      # Platt scaling or isotonic regression
+  models:
+    - lgbm
+    - xgboost
+    - chronos2
+    - tft
+
+# ---------- Training ----------
+training:
+  device: auto                     # auto-detect GPU
+  mixed_precision: true            # fp16 on GPU
+  num_workers: 4
+  seed: 42
+
+# ---------- Evaluation ----------
+evaluation:
+  metrics:
+    - accuracy
+    - directional_accuracy          # up vs down only
+    - macro_f1
+    - sharpe_ratio                  # simulated trading metric
+    - max_drawdown
+  target_directional_accuracy: 0.54  # minimum threshold to beat random
+
+# ---------- Drift detection & retraining ----------
+monitoring:
+  drift_window_days: 30
+  accuracy_threshold: 0.52          # retrain if rolling accuracy drops below
+  retraining_schedule: monthly      # baseline schedule
+  regime_triggered_retrain: true    # also retrain on HMM state transitions
+  shadow_mode_days: 5               # new model runs in shadow before promotion

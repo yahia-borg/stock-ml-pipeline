@@ -1,0 +1,181 @@
+# Stock universe — all tickers tracked by the pipeline
+# Data backfill starts from 2000-01-01 (MENA tickers typically have 5-10 years)
+# Tickers that didn't exist yet will have NaN until their IPO/inception date
+
+tickers:
+  # ── US Mega-Cap ──
+  - AAPL
+  - MSFT
+  - GOOGL
+  - AMZN
+  - NVDA
+  - META
+  - TSLA
+  - BRK-B
+  - JPM
+  - V
+
+  # ── US Indices & ETFs ──
+  - SPY         # S&P 500
+  - QQQ         # NASDAQ-100
+  - IWM         # Russell 2000
+  - GLD         # Gold
+  - TLT         # 20yr Treasury
+  - HYG         # High-yield corporate bonds
+
+  # ── US Sector ETFs ──
+  - XLF         # Financials
+  - XLE         # Energy
+  - XLK         # Technology
+  - XLV         # Healthcare
+  - XLI         # Industrials
+
+  # ── Egypt (EGX) ── suffix .CA
+  - COMI.CA     # Commercial International Bank (CIB) — most liquid EGX stock
+  - TMGH.CA     # Talaat Moustafa Group — real estate
+  - EAST.CA     # Eastern Company — tobacco/FMCG
+  - HRHO.CA     # EFG Holding (ex EFG Hermes) — investment bank
+  - ORAS.CA     # Orascom Construction
+  - SWDY.CA     # Elsewedy Electric
+  - FWRY.CA     # Fawry — fintech/digital payments
+  - EFIH.CA     # E-Finance — digital infrastructure
+  - ETEL.CA     # Telecom Egypt
+  - PHDC.CA     # Palm Hills Development — real estate
+  - ESRS.CA     # Ezz Steel
+  - ABUK.CA     # Abu Qir Fertilizers
+
+  # ── Saudi Arabia (Tadawul) ── suffix .SR
+  - 2222.SR     # Saudi Aramco
+  - 1120.SR     # Al Rajhi Bank
+  - 7010.SR     # STC (Saudi Telecom)
+  - 2010.SR     # SABIC
+  - 1180.SR     # Saudi National Bank (SNB)
+  - 5110.SR     # Saudi Electricity
+  - 1010.SR     # Riyad Bank
+  - 1150.SR     # Alinma Bank
+  - 2082.SR     # ACWA Power
+  - 1211.SR     # Ma'aden (Saudi Mining)
+
+  # ── UAE (suffix .AE for Dubai, .AB for Abu Dhabi) ── verified on yfinance
+  - ETISALAT.AB   # Emirates Telecom (e&) — Abu Dhabi
+  - DFM.AE      # Dubai Financial Market
+  - EMAAR.AE    # Emaar Properties (Dubai)
+  - EMIRATESNBD.AE  # Emirates NBD (Dubai)
+  - DIB.AE      # Dubai Islamic Bank (Dubai)
+  - DEWA.AE     # Dubai Electricity & Water (Dubai)
+
+  # ── Qatar (QSE) ──
+  - QNBK.QA    # Qatar National Bank
+  - IQCD.QA    # Industries Qatar
+  - ORDS.QA    # Ooredoo
+
+  # ── Kuwait ──
+  - NBK.KW     # National Bank of Kuwait
+
+  # ── MENA Regional ETFs (US-listed, reliable data) ──
+  - KSA         # iShares MSCI Saudi Arabia ETF
+  - UAE         # iShares MSCI UAE ETF
+  - QAT         # iShares MSCI Qatar ETF
+  - EGPT        # VanEck Egypt Index ETF
+
+  # ── Islamic Finance / Sharia ETFs ──
+  - ISWD.L      # iShares MSCI World Islamic ETF (London)
+  - ISDE.L      # iShares MSCI EM Islamic ETF (London)
+
+  # ── FX rates for cross-market comparison ──
+fx_tickers:
+  - EGPUSD=X    # Egyptian Pound
+  - SARUSD=X    # Saudi Riyal
+  - AEDUSD=X    # UAE Dirham
+
+# Macro indicators from FRED (use ALFRED API for vintage/as-reported data)
+macro_indicators:
+  fed_funds_rate: DFF
+  yield_curve_10y2y: T10Y2Y
+  yield_curve_10y3m: T10Y3M
+  unemployment: UNRATE
+  cpi: CPIAUCSL
+  core_cpi: CPILFESL
+  usd_index: DTWEXBGS
+  usd_index_legacy: DTWEXB
+  initial_claims: ICSA
+  industrial_production: INDPRO
+  consumer_sentiment: UMCSENT
+
+# VIX is fetched as a ticker via yfinance
+vix_ticker: "^VIX"
+
+# Market regions (for dashboard grouping)
+regions:
+  US:
+    tickers: [AAPL, MSFT, GOOGL, AMZN, NVDA, META, TSLA, BRK-B, JPM, V]
+    etfs: [SPY, QQQ, IWM, GLD, TLT, HYG, XLF, XLE, XLK, XLV, XLI]
+  Egypt:
+    tickers: [COMI.CA, TMGH.CA, EAST.CA, HRHO.CA, ORAS.CA, SWDY.CA, FWRY.CA, EFIH.CA, ETEL.CA, PHDC.CA, ESRS.CA, ABUK.CA]
+    etf: EGPT
+    currency: EGPUSD=X
+  Saudi:
+    tickers: [2222.SR, 1120.SR, 7010.SR, 2010.SR, 1180.SR, 5110.SR, 1010.SR, 1150.SR, 2082.SR, 1211.SR]
+    etf: KSA
+    currency: SARUSD=X
+  UAE:
+    tickers: [FAB.AD, ADNOCDIST.AD, ETISALAT.AD, ALDAR.AD, EMAAR.DU, EMIRATESNBD.DU, DIB.DU, DEWA.DU]
+    etf: UAE
+    currency: AEDUSD=X
+  Qatar:
+    tickers: [QNBK.QA, IQCD.QA, ORDS.QA]
+    etf: QAT
+  Kuwait:
+    tickers: [NBK.KW]
+
+# GDELT event keywords for financial impact tracking
+gdelt_keywords:
+  # Global macro
+  - "federal reserve interest rates"
+  - "inflation CPI"
+  - "oil price OPEC"
+  - "geopolitical conflict Middle East"
+  # Egypt specific
+  - "Egypt stock exchange EGX"
+  - "Egypt central bank interest rate"
+  - "Egyptian pound EGP devaluation"
+  - "Egypt economy GDP inflation"
+  - "Suez Canal shipping"
+  - "Egypt IMF loan"
+  # Saudi specific
+  - "Saudi Aramco oil production"
+  - "Saudi Arabia Vision 2030"
+  - "Tadawul stock exchange"
+  - "Saudi central bank SAMA"
+  # UAE specific
+  - "Dubai real estate economy"
+  - "Abu Dhabi ADNOC investment"
+  - "UAE central bank"
+  # Islamic finance / Sharia
+  - "Islamic finance sukuk"
+  - "Sharia compliant investment"
+  - "Islamic banking growth"
+  - "halal investment fund"
+
+# Sharia-compliant stock screening criteria
+sharia_compliance:
+  # Stocks are Sharia-compliant if they meet these criteria:
+  # 1. Business activity: no alcohol, gambling, pork, conventional banking interest
+  # 2. Financial ratios (AAOIFI standards):
+  max_debt_to_market_cap: 0.33        # total debt / market cap < 33%
+  max_cash_to_market_cap: 0.33        # cash + interest-bearing securities < 33%
+  max_impure_revenue_pct: 0.05        # non-halal revenue < 5%
+  # Known Sharia-compliant tickers (manually verified or from Sharia indices)
+  known_compliant:
+    egypt: [COMI.CA, TMGH.CA, EAST.CA, SWDY.CA, FWRY.CA, EFIH.CA, ORAS.CA, PHDC.CA, ESRS.CA, ABUK.CA]
+    saudi: [2222.SR, 7010.SR, 2010.SR, 5110.SR, 2082.SR, 1211.SR]  # most Tadawul stocks are Sharia-screened
+    uae: [EMAAR.AE, DEWA.AE, DFM.AE, ETISALAT.AB]
+    qatar: [IQCD.QA, ORDS.QA]
+    # Non-compliant (conventional banks — interest-based):
+    # 1120.SR (Al Rajhi is Islamic bank — compliant)
+    # 1180.SR (SNB — conventional, excluded)
+    # JPM, V — conventional finance, excluded
+  sharia_indices:
+    - "^SPSHX"     # S&P 500 Sharia Index (if available on yfinance)
+    - "ISWD.L"     # iShares MSCI World Islamic ETF (London)
+    - "ISDE.L"     # iShares MSCI EM Islamic ETF (London)

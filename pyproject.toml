@@ -1,0 +1,118 @@
+[build-system]
+requires = ["setuptools>=75.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "stock-forecast"
+version = "0.1.0"
+description = "Stock price direction & magnitude forecasting pipeline"
+readme = "README.md"
+requires-python = ">=3.11"
+license = {text = "MIT"}
+
+# Core deps — installs fast, works on any machine (CPU)
+dependencies = [
+    # ---------- Data collection ----------
+    "yfinance>=0.2.44",
+    "pandas-datareader>=0.10.0",
+    "feedparser>=6.0.11",
+    "requests>=2.32.0",
+    "fredapi>=0.5.2",
+
+    # ---------- Feature engineering ----------
+    "pandas>=2.2.0",
+    "pandas-ta>=0.3.14b",
+    "numpy>=1.26.0",
+    "scikit-learn>=1.5.0",
+
+    # ---------- ML models — classical (no GPU needed) ----------
+    "lightgbm>=4.5.0",
+    "xgboost>=2.1.0",
+    "shap>=0.46.0",
+
+    # ---------- Regime detection ----------
+    "hmmlearn>=0.3.3",
+
+    # ---------- NLP / Sentiment ----------
+    "transformers>=4.46.0",
+    "openai>=1.55.0",
+
+    # ---------- Serving ----------
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.32.0",
+    "pydantic>=2.9.0",
+
+    # ---------- Database ----------
+    "psycopg2-binary>=2.9.10",
+    "sqlalchemy>=2.0.36",
+
+    # ---------- Experiment tracking & MLOps ----------
+    "wandb>=0.18.0",
+    "mlflow>=2.18.0",
+    "evidently>=0.4.40",
+
+    # ---------- Utils ----------
+    "joblib>=1.4.2",
+    "pyyaml>=6.0.2",
+    "python-dotenv>=1.0.1",
+    "rich>=13.9.0",
+]
+
+[project.optional-dependencies]
+# PyTorch CPU — default for most people (smaller download ~200MB)
+torch-cpu = [
+    "torch>=2.4.0",
+]
+# PyTorch GPU — install with: pip install -e ".[torch-gpu]" (needs NVIDIA GPU + CUDA)
+torch-gpu = [
+    "torch>=2.4.0",
+]
+# Deep learning models (TFT, Chronos) — needs torch installed first
+dl = [
+    "pytorch-forecasting>=1.2.0",
+    "pytorch-lightning>=2.4.0",
+    "chronos-forecasting>=2.0.0",
+]
+# Salesforce Moirai 2.0
+moirai = [
+    "uni2ts",
+]
+# Everything for local development
+dev = [
+    "pytest>=8.3.0",
+    "pytest-cov>=6.0.0",
+    "pytest-asyncio>=0.24.0",
+    "ruff>=0.8.0",
+    "mypy>=1.13.0",
+    "pre-commit>=4.0.0",
+    "ipykernel>=6.29.0",
+    "jupyter>=1.1.0",
+]
+# Full install (CPU) = core + torch + DL + dev
+all-cpu = [
+    "stock-forecast[torch-cpu,dl,dev]",
+]
+# Full install (GPU) = core + torch-gpu + DL + dev
+all-gpu = [
+    "stock-forecast[torch-gpu,dl,dev]",
+]
+
+[tool.setuptools.packages.find]
+include = ["src*"]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W", "UP"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+ignore_missing_imports = true

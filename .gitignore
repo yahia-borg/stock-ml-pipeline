@@ -1,0 +1,78 @@
+# ── Environment & Secrets ──
+.env
+*.pem
+*.key
+*.secret
+
+# ── Python ──
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+*.egg
+dist/
+build/
+
+# ── Virtual environments ──
+.venv/
+venv/
+
+# ── Data (large files — track with DVC if needed) ──
+data/raw/prices/*.parquet
+data/raw/news/*.parquet
+data/raw/macro/*.parquet
+data/raw/events/*.parquet
+data/raw/fundamentals/*.parquet
+data/processed/*.parquet
+data/splits/*.csv
+!data/**/.gitkeep
+
+# ── Model artifacts ──
+models/*.joblib
+models/*.pt
+models/*.pth
+models/*.ckpt
+models/tft_checkpoints/
+!models/.gitkeep
+!models/scalers/.gitkeep
+# Keep results JSON (small, useful for comparison)
+!models/*_results.json
+
+# ── Logs ──
+*.log
+logs/*.log
+!logs/.gitkeep
+
+# ── IDE ──
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ── Jupyter ──
+.ipynb_checkpoints/
+
+# ── OS ──
+.DS_Store
+Thumbs.db
+
+# ── Docker volumes ──
+timescale_data/
+
+# ── Node.js / Dashboard ──
+dashboard/node_modules/
+dashboard/.next/
+dashboard/out/
+
+# ── Experiment tracking ──
+wandb/
+mlruns/
+
+# ── HuggingFace cache ──
+# (stored in ~/.cache/huggingface by default, not in project)
+
+# ── Stray files ──
+package-lock.json
+stock_forecast.egg-info/
+predictions.db

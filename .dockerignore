@@ -1,0 +1,44 @@
+# VCS & IDE
+.git
+.github
+.vscode
+.idea
+
+# Python
+.venv
+venv
+__pycache__
+*.pyc
+*.egg-info
+.pytest_cache
+.mypy_cache
+.ruff_cache
+
+# Node
+node_modules
+dashboard/node_modules
+dashboard/.next
+
+# Data (mounted as volumes, not baked into image)
+data/
+models/*.joblib
+models/*.pt
+models/tft_checkpoints
+
+# Logs
+logs/
+*.log
+wandb/
+mlruns/
+
+# Docs (not needed in container)
+*.md
+.specify
+.claude
+notebooks
+tests
+
+# Env
+.env
+.env.*
+!.env.example

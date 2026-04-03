@@ -1,0 +1,100 @@
+services:
+  # ── Database ──
+  timescaledb:
+    image: timescale/timescaledb:latest-pg16
+    container_name: stock-timescaledb
+    environment:
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-stockpass}
+      POSTGRES_DB: ${DB_NAME:-stocks}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - timescale_data:/var/lib/postgresql/data
+      - ./scripts/bootstrap_db.sql:/docker-entrypoint-initdb.d/01_bootstrap.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-stocks}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+
+  # ── API Server ──
+  api:
+    profiles: ["api", "full"]
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: stock-api
+    ports:
+      - "${API_PORT:-8099}:8099"
+    env_file:
+      - .env
+    environment:
+      DB_HOST: timescaledb
+      DB_PORT: 5432
+    depends_on:
+      timescaledb:
+        condition: service_healthy
+    volumes:
+      - ./data:/app/data:ro
+      - ./models:/app/models:ro
+      - ./configs:/app/configs:ro
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: "2"
+
+  # ── Pipeline Worker (data collection + training) ──
+  worker:
+    profiles: ["worker", "full"]
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+    container_name: stock-worker
+    env_file:
+      - .env
+    environment:
+      DB_HOST: timescaledb
+      DB_PORT: 5432
+    depends_on:
+      timescaledb:
+        condition: service_healthy
+    volumes:
+      - ./data:/app/data
+      - ./models:/app/models
+      - ./configs:/app/configs:ro
+      - ./logs:/app/logs
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: "4"
+
+  # ── Dashboard ──
+  dashboard:
+    profiles: ["dashboard", "full"]
+    build:
+      context: ./dashboard
+      dockerfile: Dockerfile
+    container_name: stock-dashboard
+    ports:
+      - "3000:3000"
+    environment:
+      NEXT_PUBLIC_API_URL: http://api:8099
+    depends_on:
+      - api
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+
+volumes:
+  timescale_data:
