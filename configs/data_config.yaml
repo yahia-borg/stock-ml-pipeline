@@ -63,19 +63,26 @@ features:
 # News sources (free tier)
 news:
   rss_feeds:
-    # US / Global
-    reuters_markets: "https://feeds.reuters.com/reuters/businessNews"
-    wsj_markets: "https://feeds.a.dj.com/rss/RSSMarketsMain.xml"
-    seeking_alpha: "https://seekingalpha.com/feed.xml"
-    yahoo_finance: "https://finance.yahoo.com/news/rssindex"
-    # Middle East / MENA
-    arabianbusiness: "https://www.arabianbusiness.com/rss"
-    gulfnews_business: "https://gulfnews.com/business/rss"
-    zawya_mena: "https://www.zawya.com/mena/en/rss/latest-news.xml"
-    dailynews_egypt: "https://dailynewsegypt.com/feed/"
-    ahram_business: "https://english.ahram.org.eg/RSS/4/Business.aspx"
-    arab_news: "https://www.arabnews.com/rss/business"
-    saudi_gazette: "https://saudigazette.com.sa/rss/business"
+    # ── Global Financial (all verified working) ──
+    yahoo_finance: "https://finance.yahoo.com/news/rssindex"                     # 45 articles
+    bloomberg_markets: "https://feeds.bloomberg.com/markets/news.rss"             # 30 articles
+    bloomberg_tech: "https://feeds.bloomberg.com/technology/news.rss"             # 30 articles
+    business_insider: "https://markets.businessinsider.com/rss/news"              # 10 articles
+    wsj_markets: "https://feeds.a.dj.com/rss/RSSMarketsMain.xml"                 # 20 articles
+    seeking_alpha: "https://seekingalpha.com/feed.xml"                            # 30 articles
+    investing_com_news: "https://www.investing.com/rss/news.rss"                  # 10 articles
+    investing_com_analysis: "https://www.investing.com/rss/market_overview_Technical.rss" # 10 articles
+    cnbc_markets: "https://www.cnbc.com/id/20910258/device/rss/rss.html"          # 30 articles
+    ft_markets: "https://www.ft.com/markets?format=rss"                           # 25 articles
+    # ── Middle East / MENA (verified working) ──
+    dailynews_egypt: "https://dailynewsegypt.com/feed/"                           # 10 articles
+    saudi_gazette: "https://saudigazette.com.sa/rss/business"                     # 50 articles
+    gulfbusiness: "https://gulfbusiness.com/feed/"                                # 10 articles
+    egypt_independent: "https://egyptindependent.com/feed/"                       # 10 articles
+    # ── TradingView Community Ideas (verified working) ──
+    tradingview_spy: "https://www.tradingview.com/feed/?symbol=SPY"               # 30 ideas
+    tradingview_aapl: "https://www.tradingview.com/feed/?symbol=AAPL"             # 30 ideas
+    tradingview_gold: "https://www.tradingview.com/feed/?symbol=GOLD"             # 30 ideas
   newsapi:
     requests_per_day: 100         # free tier limit
     history_days: 30
