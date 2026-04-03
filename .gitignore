@@ -76,3 +76,5 @@ mlruns/
 package-lock.json
 stock_forecast.egg-info/
 predictions.db
+*.text
+*.md
